@@ -1,0 +1,31 @@
+
+image_selection:
+    input_path: "naist_colonoscopy/processed_videos/colonoscopy.mp4"
+    plot: False          # whether to plot or not
+    center_crop: True    # Crop the image from center
+    sliding_window: False
+    sl_win_size: 512
+    stepsize: 512
+    inverse: True   # true/false for inverse hadamard transform
+    zero_out: True
+    zo_side: 'bottom_right'  # 'top_left'
+    blur_thresh: 0.041
+    reconstructed_patch: True
+    img_save: False
+    separate_img: False # separate the normal and blurred images in separate folder
+    make_video: True
+    out_path: 'WalshHadamardAnalysis/analysis'  
+    out_file: 'analysis.csv'
+
+csiq:
+    dmos_file: "CSIQ_Dataset/csiq.DMOS-edited.xlsx"
+    dst_path: 'CSIQ_Dataset/dst_imgs'
+    blur_only: True
+    analysis_csv: 'output/csiq_analysis/csiq_analysis_df_no_reference.csv'
+    regplot: 'output/csiq_analysis/regfit.png'
+
+live:
+    live_data: 'LIVE_II_Dataset/LIVE_II.csv'
+    analysis_csv: 'output/live_ii_analysis/liveii_analysis_df_no_reference_image.csv'
+    blur_only: True
+    regplt: 'output/live_ii_analysis/regfit.png'
