@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.linalg import hadamard
-# import torch 
-# import torchvision.transforms as transforms
 import random
 from utils import  sliding_window, zero_out_triangle
 random.seed(0)

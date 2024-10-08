@@ -1,6 +1,6 @@
 
 image_selection:
-    input_path: "naist_colonoscopy/processed_videos/colonoscopy.mp4"
+    input_path: "inputs"
     plot: False          # whether to plot or not
     center_crop: True    # Crop the image from center
     sliding_window: False
@@ -18,14 +18,16 @@ image_selection:
     out_file: 'analysis.csv'
 
 csiq:
-    dmos_file: "CSIQ_Dataset/csiq.DMOS-edited.xlsx"
-    dst_path: 'CSIQ_Dataset/dst_imgs'
+    dmos_file: "/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/CSIQ_Dataset/csiq.DMOS-edited.xlsx"
+    dst_path: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/CSIQ_Dataset/dst_imgs'
     blur_only: True
-    analysis_csv: 'output/csiq_analysis/csiq_analysis_df_no_reference.csv'
-    regplot: 'output/csiq_analysis/regfit.png'
+    outpath: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/output/csiq_analysis'
+    analysis_csv: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/output/csiq_analysis/csiq_analysis_df_no_reference.csv'
+    regplot: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/output/csiq_analysis/regfit.png'
 
 live:
-    live_data: 'LIVE_II_Dataset/LIVE_II.csv'
-    analysis_csv: 'output/live_ii_analysis/liveii_analysis_df_no_reference_image.csv'
+    live_data: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/LIVE_II_Dataset/LIVE_II.csv'
+    analysis_csv: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/output/live_ii_analysis/liveii_analysis_df_no_reference_image.csv'
     blur_only: True
-    regplt: 'output/live_ii_analysis/regfit.png'
+    outpath: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/output/live_ii_analysis'
+    regplot: '/home/is/mdshakhaout-h/colonocopy_blur_detection_public_git/colorectal-blur-detection/output/live_ii_analysis/regfit.png'

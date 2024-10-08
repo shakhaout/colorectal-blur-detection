@@ -1,14 +1,10 @@
 import os
-from pathlib import Path
 import cv2
 import numpy as np
-import pandas as pd
 import random
 import math
 from math import log10, sqrt 
 from tqdm import tqdm
-from stream_loader import StreamLoader
-import pdb
 random.seed(0)
 os.getcwd()
 
@@ -46,7 +42,6 @@ def video_to_images(input_path, img_save=False, ex_frame=0, freq=1, out_path='ou
                     if count >= ex_frame:
                         if count%freq==0:  # save 1 every n consecutive frames
                             cv2.imwrite(os.path.join(out_path, '%s_%d.png')%(vid_name, count),frame)
-                            # cv2.imwrite(os.path.join(out_path, '%d.png')%count,frame[0:h, 470:w-80])
                     
                 else:
                     if count%freq==0:  # take 1 every n consecutive frames
@@ -58,153 +53,6 @@ def video_to_images(input_path, img_save=False, ex_frame=0, freq=1, out_path='ou
     vidcap.release()
 
     return frames, fps
-
-
-def cover_image_portion(image, x1=0, y1=690, x2=140, y2=768):
-  """
-  Covers a rectangular portion of an image with black pixels.
-
-  Args:
-    image_path: Path to the image file.
-    x1, y1: Top-left corner coordinates of the rectangular portion.
-    x2, y2: Bottom-right corner coordinates of the rectangular portion.
-
-  Returns:
-    A new image with the specified portion covered in black.
-  """
-
-  # Create a black rectangle with the specified dimensions
-  mask = np.zeros_like(image)  # Create mask with same channels as image
-  #Flip the mask color to white
-  mask[:, :] = [255, 255, 255]
-#   print(mask.shape)
-  mask = cv2.rectangle(mask, (x1, y1), (x2, y2), (0, 0, 0), -1)  # Fill rectangle with black
-  # Apply the mask to the image using bitwise AND operation
-  covered_image = cv2.bitwise_and(image, mask)
-
-  return covered_image
-
-
-def process_video(input_path, txt_file=None, stframe=0, endframe=38711, x1=345, y1= 0, yh=0, xw=85, freq=1, out_path=None):
-    '''Create directory and save processed video.'''    
-    
-    if txt_file:
-        with open(txt_file, 'r') as f:
-            files = f.readlines()
-        frames_tokeep = [int(i) for i in files]   # [int(i.split('.')[0]) for i in files]
-        frames_tokeep.sort()
-    else:
-        frames_tokeep = []
-        for i in range(stframe,endframe+1,1):
-            frames_tokeep.append(i)
-
-    cap = cv2.VideoCapture(input_path)
-    # Get video properties
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    num_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    if not os.path.exists(out_path):
-            os.makedirs(out_path)
-
-    h, w = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)), int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height, width = h-y1-yh, w-x1-xw
-    # Define the codec and create VideoWriter object
-    #fourcc = cv2.cv.CV_FOURCC(*'DIVX')
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    #out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
-    out_file = Path(input_path)
-    out = cv2.VideoWriter(os.path.join(out_path, (out_file.stem + '.mp4')), fourcc, fps, (width,height))
-
-    count = 1
-    # Progress bar setup
-    with tqdm(total=num_frames, desc="Saving video") as pbar:
-        while(cap.isOpened()):
-            ret, frame = cap.read()
-            
-            if ret==True:
-                # frame = cv2.flip(frame,0)
-                h, w = frame.shape[:2]
-                if count in frames_tokeep:
-                    if count%freq==0:  # save 1 every n consecutive frames
-                        # cover unwanted region
-                        cov_img = cover_image_portion(frame[y1:h-yh, x1:w-xw])  # frame[0:h, 470:w-80] , frame[0:h, 340:w-65]
-                        out.write(cov_img)  # save cropped frame
-                count += 1
-                pbar.update(1)
-            
-            else:
-                break
-    # Release everything if job is finished
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
-    print("Finished saving video!!")
-
-    return 0
-
-def make_video(input_dir: str, chunk_size: int, skip_freq: int, add_score: bool=False, sliding_window: bool=False, scores: pd.DataFrame=pd.DataFrame(), fname: str='test.mp4', out_path: str='output/') -> int:
-    '''Create directory and save video.'''    
-
-    if not os.path.exists(out_path):
-            os.makedirs(out_path)
-    
-
-    video_stream = StreamLoader(input_dir,
-                            0, chunk_size, True, False, skip_freq)
-    frames, start_frame , fps, total_frames = video_stream.run()
-    height, width = frames[0].shape[:2]
-    # Define the codec and create VideoWriter object
-    #fourcc = cv2.cv.CV_FOURCC(*'DIVX')
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-    out = cv2.VideoWriter(os.path.join(out_path, fname), fourcc, fps, (width,height))
-
-    streaming = True
-    total_chunks = int(total_frames/chunk_size)
-    while streaming:
-        # Progress bar setup
-        with tqdm(total=total_chunks, desc="Saving video") as pbar:
-            for i,frame in tqdm(enumerate(frames)):
-                if add_score:
-                    if sliding_window:
-                        score = scores[scores['frame_number']== start_frame+i]
-                        cols = ['mean_ratio','mse','ssim','psnr', 'ks_statistics']
-                        mse_thresh = score[score['mse']<65]
-                        blurriness = len(mse_thresh)/len(score)
-                        if blurriness > 0.5:
-                            color = (0,0,255)
-                        else:
-                            color = (0,255,0)
-                        for j,col in enumerate(cols):
-                            txt = col+': '+ ', '.join([f'{num:.3f}' for num in score[col].tolist()])
-                            cv2.putText(frame, txt, (20, 50*(j+1)), cv2.FONT_HERSHEY_SIMPLEX,
-                                    0.6, 
-                                    color, 
-                                    1, 
-                                    lineType = cv2.LINE_AA)
-                    else:
-                        score = scores.iloc[start_frame+i]
-                        for j in range(score.iloc[1:].shape[0]):
-                            if score['mse'] < 65:
-                                color = (0,0,255)
-                            else:
-                                color = (0,255,0)
-                            txt = score.keys()[j+1] + ": {:.3f}".format(score[j+1])
-                            cv2.putText(frame, txt, (20, 50*(j+1)), cv2.FONT_HERSHEY_SIMPLEX,
-                                    1, 
-                                    color, 
-                                    1, 
-                                    lineType = cv2.LINE_AA)
-                    
-                out.write(frame)  
-                pbar.update(1)
-
-        frames, start_frame, fps, _ = video_stream.run()
-        if not(len(frames)):
-            streaming = False
-
-    out.release()
-    print("Finished saving video!!")
-    return 0
-
 
 # crop an image from center
 def center_crop_image(image, target_size):
@@ -290,50 +138,6 @@ def sliding_window(image, stepSize, windowSize):
                 break
 
 
-def image_norm(image, type="L2"):
-    
-    # https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm
-    # https://en.wikipedia.org/wiki/Matrix_norm
-    # https://www.kdnuggets.com/2023/05/vector-matrix-norms-numpy-linalg-norm.html
-    
-    # Ensure the image is a NumPy array
-    image = np.array(image, dtype=np.float32)
-    
-    if type == "L2":
-        ## L2 Norm
-        # Step 1: Square each element of the matrix
-        squared_elements = np.square(image)
-        # Step 2: Sum up all the squared elements
-        sum_of_squared_elements = np.sum(squared_elements)
-        # Step 3: Take the square root of the result to get the L2 norm
-        L2_norm = np.sqrt(sum_of_squared_elements)
-        return L2_norm
-    
-    elif type == "inf":
-        ## Infinite Norm
-        # Step 1: Calculate the absolute sum for each row of the matrix
-        absolute_row_sums = np.sum(np.abs(image), axis=1)
-        # Step 2: Identify the row with the largest absolute sum
-        infinite_norm = np.max(absolute_row_sums)
-
-        return infinite_norm
-
-    else:
-        print("Norm type is not mentioned!")
-
-
-def lp_norm(image, ord=None):
-
-    # Flatten the image into a 1D array
-    flat_image = image.flatten()
-
-    # Calculate Lp norm
-    if ord == 'inf':
-        norm_value = np.linalg.norm(flat_image, ord=np.inf)
-    else:
-        norm_value = np.linalg.norm(flat_image)
-
-    return norm_value
 
 
 def contrast_enhance(image):
