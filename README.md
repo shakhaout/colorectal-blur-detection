@@ -23,6 +23,18 @@ yaml 0.2.5
     ```shell
     python evaluate.py
     ```
-
-
+## Citation
+If you find this repo useful in your work or research, please cite:
+```
+@INPROCEEDINGS{10759253,
+  author={Hossain, MD Shakhaout and Ono, Naoaki and Kanaya, Shigehiko and Altaf-Ul-Amin, Md.},
+  booktitle={2024 IEEE International Conference on Imaging Systems and Techniques (IST)}, 
+  title={No-Reference Blurred Image Detection from Colonoscopy Videos Using Walsh-Hadamard Transform and Kolmogorov Smirnov Test}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1-6},
+  keywords={Training;Frequency-domain analysis;Colonoscopy;Estimation;Transforms;Colorectal cancer;Reflection;Real-time systems;Image restoration;Videos;Colonoscopy blur image detection;medical image;no reference blur assessment;walsh-hadamard;frequency domain;kolmogorov smirnov test},
+  doi={10.1109/IST63414.2024.10759253}}
+```
 
